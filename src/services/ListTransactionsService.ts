@@ -19,13 +19,25 @@ class ListTransactionsService {
 
   public execute(): TransactionsResponse {
     const transactionsResponse = this.transactionsRepository.all();
-    const sumIncome = transactionsResponse.transactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, obj) => sum + obj.value, 0);
-
-    const sumOutcome = transactionsResponse.transactions
-      .filter(t => t.type === 'outcome')
-      .reduce((sum, obj) => sum + obj.value, 0);
+    const { sumIncome, sumOutcome } = transactionsResponse.transactions.reduce(
+      (accumulator, transaction) => {
+        switch (transaction.type) {
+          case 'income':
+            accumulator.sumIncome += transaction.value;
+            break;
+          case 'outcome':
+            accumulator.sumOutcome += transaction.value;
+            break;
+          default:
+            break;
+        }
+        return accumulator;
+      },
+      {
+        sumIncome: 0,
+        sumOutcome: 0,
+      },
+    );
 
     transactionsResponse.balance = {
       income: sumIncome,
